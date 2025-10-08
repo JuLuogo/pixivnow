@@ -12,17 +12,17 @@
   "license": "MIT",
   "scripts": {
     "start": "vite",
-    "serve": "vercel dev",
+    "serve": "wrangler dev",
     "build": "vite build",
-    "preview": "vercel deploy",
+    "preview": "wrangler deploy",
     "changelog": "conventional-changelog -p jquery -i CHANGELOG.md -s -r 0"
   },
   "dependencies": {
-    "axios": "^1.11.0",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
     "fflate": "^0.8.2",
     "gif.js": "^0.2.0",
+    "itty-router": "^5.0.22",
     "js-cookie": "^3.0.5",
     "modern-mp4": "^0.2.0",
     "naive-ui": "^2.42.0",
@@ -44,11 +44,9 @@
     "@types/lodash.escaperegexp": "^4.1.9",
     "@types/node": "^22.17.2",
     "@types/nprogress": "^0.2.3",
-    "@vercel/node": "^5.3.13",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/language-plugin-pug": "^3.0.6",
     "@vueuse/core": "^13.7.0",
-    "cheerio": "^1.1.2",
     "conventional-changelog-cli": "^5.0.0",
     "cookie": "^1.0.2",
     "lodash.escaperegexp": "^4.1.2",
@@ -61,8 +59,8 @@
     "unplugin-auto-import": "^20.0.0",
     "unplugin-icons": "^22.2.0",
     "unplugin-vue-components": "^29.0.0",
-    "vercel": "^46.0.2",
-    "vite": "^7.1.3"
+    "vite": "^7.1.3",
+    "wrangler": "^4.42.1"
   },
   "packageManager": "pnpm@10.18.1"
 }

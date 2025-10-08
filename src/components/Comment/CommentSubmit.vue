@@ -19,6 +19,7 @@
 <script lang="ts" setup>
 import Cookies from 'js-cookie'
 import { useUserStore } from '@/composables/states'
+import { ajax } from '@/utils/ajax'
 
 const store = useUserStore()
 
@@ -41,20 +42,22 @@ async function submit(): Promise<void> {
   if (loading.value) return
   try {
     loading.value = true
-    const { data } = await axios.post(
+    const response = await ajax.post(
       `/ajax/illusts/comments/post`,
-      {
+      JSON.stringify({
         type: 'comment',
         illust_id: props.id,
         author_user_id: store.userId,
         comment,
-      },
+      }),
       {
         headers: {
           'X-CSRF-TOKEN': Cookies.get('csrf_token'),
+          'Content-Type': 'application/json',
         },
       }
     )
+    const data = await response.json()
     comment.value = ''
     emit('push-comment', {
       img: store.userProfileImg,

@@ -235,9 +235,13 @@ async function init(id: string): Promise<void> {
   }
 
   try {
-    const [{ data: illustData }, { data: illustPage }] = await Promise.all([
-      ajax.get<Artwork>(`/ajax/illust/${id}?full=1`),
-      ajax.get<ArtworkGallery[]>(`/ajax/illust/${id}/pages`),
+    const [illustData, illustPage] = await Promise.all([
+      ajax
+        .get(`/ajax/illust/${id}?full=1`)
+        .then((res) => res.json() as Promise<Artwork>),
+      ajax
+        .get(`/ajax/illust/${id}/pages`)
+        .then((res) => res.json() as Promise<ArtworkGallery[]>),
     ])
     setCache(`illust.${id}`, illustData)
     setCache(`illust.${id}.page`, illustPage)
@@ -263,11 +267,16 @@ async function handleUserInit(userId: string): Promise<void> {
   }
 
   try {
-    const [{ data: userData }, { data: profileData }] = await Promise.all([
-      axios.get<User>(`/ajax/user/${userId}?full=1`),
-      axios.get<{ illusts: Record<string, ArtworkInfo> }>(
-        `/ajax/user/${userId}/profile/top`
-      ),
+    const [userData, profileData] = await Promise.all([
+      ajax
+        .get(`/ajax/user/${userId}?full=1`)
+        .then((res) => res.json() as Promise<User>),
+      ajax
+        .get(`/ajax/user/${userId}/profile/top`)
+        .then(
+          (res) =>
+            res.json() as Promise<{ illusts: Record<string, ArtworkInfo> }>
+        ),
     ])
     const { illusts } = profileData
     const userValue = {
@@ -286,10 +295,15 @@ async function handleRecommendInit(id: string): Promise<void> {
   try {
     recommendLoading.value = true
     console.log('init recommend')
-    const { data } = await ajax.get<{
-      illusts: ArtworkInfo[]
-      nextIds: string[]
-    }>(`/ajax/illust/${id}/recommend/init?limit=18`)
+    const data = await ajax
+      .get(`/ajax/illust/${id}/recommend/init?limit=18`)
+      .then(
+        (res) =>
+          res.json() as Promise<{
+            illusts: ArtworkInfo[]
+            nextIds: string[]
+          }>
+      )
     recommend.value = data.illusts
     recommendNextIds.value = data.nextIds
   } catch (err) {
@@ -313,10 +327,15 @@ async function handleMoreRecommend(): Promise<void> {
     for (const id of requestIds) {
       searchParams.append('illust_ids', id)
     }
-    const { data } = await ajax.get<{
-      illusts: ArtworkInfo[]
-      nextIds: string[]
-    }>('/ajax/illust/recommend/illusts', { params: searchParams })
+    const data = await ajax
+      .get(`/ajax/illust/recommend/illusts?${searchParams.toString()}`)
+      .then(
+        (res) =>
+          res.json() as Promise<{
+            illusts: ArtworkInfo[]
+            nextIds: string[]
+          }>
+      )
     recommend.value = recommend.value.concat(data.illusts)
     recommendNextIds.value = recommendNextIds.value.concat(data.nextIds)
   } catch (err) {

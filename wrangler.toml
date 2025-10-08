@@ -1,0 +1,21 @@
+name = "pixivnow-worker"
+main = "functions/[[path]].ts"
+compatibility_date = "2023-10-30"
+
+# 环境变量配置
+# 这些变量都有默认值，可以根据需要自定义
+[vars]
+# User-Agent 黑名单（JSON 数组格式）
+UA_BLACKLIST = "[]"
+# 自定义 User-Agent（可选，有默认值）
+# USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+# 自定义图片代理 URL（可选，默认使用 Pixiv 原始 URL）
+# 示例配置：
+# VITE_PXIMG_BASEURL_I = "https://i.pixiv.re/"
+# VITE_PXIMG_BASEURL_S = "https://s.pixiv.re/"
+VITE_PXIMG_BASEURL_I = "https://i.pixiv.re/"
+VITE_PXIMG_BASEURL_S = "https://s.pixiv.re/"
+
+[[rules]]
+type = "ESModule"
+globs = ["**/*.ts"]
