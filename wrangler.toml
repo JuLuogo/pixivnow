@@ -13,8 +13,8 @@ UA_BLACKLIST = "[]"
 # 示例配置：
 # VITE_PXIMG_BASEURL_I = "https://i.pixiv.re/"
 # VITE_PXIMG_BASEURL_S = "https://s.pixiv.re/"
-VITE_PXIMG_BASEURL_I = "https://i.pixiv.re/"
-VITE_PXIMG_BASEURL_S = "https://s.pixiv.re/"
+VITE_PXIMG_BASEURL_I = "https://i.1.0721030.xyz/"
+VITE_PXIMG_BASEURL_S = "https://s.i.0721030.xyz/"
 
 [[rules]]
 type = "ESModule"
