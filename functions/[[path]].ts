@@ -20,8 +20,10 @@ function corsResponse(response: Response) {
   })
 }
 
+import { getAssetFromKV } from '@cloudflare/kv-asset-handler'
+
 export default {
-  fetch: async (request: Request, env: any, ctx: any) => {
+  async fetch(request: Request, env: any, ctx: any): Promise<Response> {
     console.log('Worker fetch called:', request.method, request.url)
     
     const url = new URL(request.url)
@@ -55,14 +57,57 @@ export default {
       if (path === '/api/user') {
         return await handleUserAPI(request, env, url)
       }
-      
-      // 静态资源处理
-      if (path.startsWith('/assets/') || path === '/favicon.ico' || path === '/robots.txt' || path.startsWith('/images/')) {
-        return await handleStaticAssets(request, env, path)
+
+      // 静态资源和前端页面处理
+      // 使用新的 Assets API
+      if (env.ASSETS) {
+        try {
+          return await env.ASSETS.fetch(request)
+        } catch (e) {
+          console.log('Asset not found, falling back to index.html')
+          // 如果静态资源不存在，返回 index.html（SPA 路由处理）
+          try {
+            const indexRequest = new Request(new URL('/index.html', request.url), request)
+            return await env.ASSETS.fetch(indexRequest)
+          } catch (indexError) {
+            console.log('Index.html not found, using fallback')
+            // 如果 index.html 也不存在，返回内置的前端页面
+            return await handleFrontendPage(request, env)
+          }
+        }
+      } else {
+        // 如果没有 ASSETS，使用 getAssetFromKV
+        try {
+          return await getAssetFromKV(
+            {
+              request,
+              waitUntil: ctx.waitUntil.bind(ctx),
+            },
+            {
+              ASSET_NAMESPACE: env.__STATIC_CONTENT,
+              ASSET_MANIFEST: env.__STATIC_CONTENT_MANIFEST,
+            }
+          )
+        } catch (e) {
+          // 如果静态资源不存在，返回 index.html（SPA 路由处理）
+          try {
+            const indexRequest = new Request(new URL('/index.html', request.url), request)
+            return await getAssetFromKV(
+              {
+                request: indexRequest,
+                waitUntil: ctx.waitUntil.bind(ctx),
+              },
+              {
+                ASSET_NAMESPACE: env.__STATIC_CONTENT,
+                ASSET_MANIFEST: env.__STATIC_CONTENT_MANIFEST,
+              }
+            )
+          } catch (indexError) {
+            // 如果 index.html 也不存在，返回内置的前端页面
+            return await handleFrontendPage(request, env)
+          }
+        }
       }
-      
-      // 根路径和其他路径都返回前端页面（SPA 路由）
-      return await handleFrontendPage(request, env)
       
     } catch (error) {
       console.error('Worker error:', error)
@@ -338,50 +383,14 @@ async function handleUserAPI(request: Request, env: any, url: URL) {
   }
 }
 
-// 静态资源处理器
-  async function handleStaticAssets(request: Request, env: any, path: string) {
-    try {
-      const url = new URL(request.url)
-      const pathname = url.pathname
-      
-      // 根据文件扩展名设置 Content-Type
-      let contentType = 'text/plain'
-      if (pathname.endsWith('.js')) {
-        contentType = 'application/javascript'
-      } else if (pathname.endsWith('.css')) {
-        contentType = 'text/css'
-      } else if (pathname.endsWith('.ico')) {
-        contentType = 'image/x-icon'
-      } else if (pathname.endsWith('.svg')) {
-        contentType = 'image/svg+xml'
-      } else if (pathname.endsWith('.png')) {
-        contentType = 'image/png'
-      } else if (pathname.endsWith('.jpg') || pathname.endsWith('.jpeg')) {
-        contentType = 'image/jpeg'
-      }
-      
-      // 尝试读取文件
-      try {
-        // 这里需要使用 Cloudflare Workers 的文件系统 API
-        // 由于 Workers 环境限制，我们需要将文件内容嵌入到代码中
-        // 或者使用 KV 存储
-        return new Response('Static asset not found', { 
-          status: 404,
-          headers: { 'Content-Type': 'text/plain' }
-        })
-      } catch (e) {
-        return new Response('Static asset not found', { 
-          status: 404,
-          headers: { 'Content-Type': 'text/plain' }
-        })
-      }
-    } catch (e) {
-      return new Response('Static asset not found', { 
-        status: 404,
-        headers: { 'Content-Type': 'text/plain' }
-      })
-    }
-  }
+// 静态资源处理器（已废弃，现在使用 getAssetFromKV）
+// async function handleStaticAssets(request: Request, env: any, path: string) {
+//   // 这个函数已经被 getAssetFromKV 替代
+//   return new Response('Static asset not found', { 
+//     status: 404,
+//     headers: { 'Content-Type': 'text/plain' }
+//   })
+// }
 
 // 前端页面处理器
 async function handleFrontendPage(request: Request, env: any) {
