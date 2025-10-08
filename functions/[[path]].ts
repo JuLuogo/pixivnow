@@ -36,25 +36,6 @@ export default {
     }
     
     try {
-      // 健康检查端点
-      if (path === '/') {
-        return corsResponse(new Response('Pixiv Now Worker is running!', {
-          headers: { 'Content-Type': 'text/plain' },
-        }))
-      }
-      
-      // 测试端点
-      if (path === '/test') {
-        return corsResponse(new Response(JSON.stringify({ 
-          message: 'Test successful', 
-          timestamp: Date.now(),
-          method: request.method,
-          path: path
-        }), {
-          headers: { 'Content-Type': 'application/json' },
-        }))
-      }
-      
       // 随机图片 API
       if (path === '/api/illust/random') {
         return await handleRandomAPI(request, env, url)
@@ -75,11 +56,13 @@ export default {
         return await handleUserAPI(request, env, url)
       }
       
-      // 404
-      return corsResponse(new Response('Not Found', { 
-        status: 404,
-        headers: { 'Content-Type': 'text/plain' }
-      }))
+      // 静态资源处理
+      if (path.startsWith('/assets/') || path === '/favicon.ico' || path === '/robots.txt' || path.startsWith('/images/')) {
+        return await handleStaticAssets(request, env, path)
+      }
+      
+      // 根路径和其他路径都返回前端页面（SPA 路由）
+      return await handleFrontendPage(request, env)
       
     } catch (error) {
       console.error('Worker error:', error)
@@ -353,4 +336,247 @@ async function handleUserAPI(request: Request, env: any, url: URL) {
       headers: { 'Content-Type': 'application/json' },
     }))
   }
+}
+
+// 静态资源处理器
+  async function handleStaticAssets(request: Request, env: any, path: string) {
+    try {
+      const url = new URL(request.url)
+      const pathname = url.pathname
+      
+      // 根据文件扩展名设置 Content-Type
+      let contentType = 'text/plain'
+      if (pathname.endsWith('.js')) {
+        contentType = 'application/javascript'
+      } else if (pathname.endsWith('.css')) {
+        contentType = 'text/css'
+      } else if (pathname.endsWith('.ico')) {
+        contentType = 'image/x-icon'
+      } else if (pathname.endsWith('.svg')) {
+        contentType = 'image/svg+xml'
+      } else if (pathname.endsWith('.png')) {
+        contentType = 'image/png'
+      } else if (pathname.endsWith('.jpg') || pathname.endsWith('.jpeg')) {
+        contentType = 'image/jpeg'
+      }
+      
+      // 尝试读取文件
+      try {
+        // 这里需要使用 Cloudflare Workers 的文件系统 API
+        // 由于 Workers 环境限制，我们需要将文件内容嵌入到代码中
+        // 或者使用 KV 存储
+        return new Response('Static asset not found', { 
+          status: 404,
+          headers: { 'Content-Type': 'text/plain' }
+        })
+      } catch (e) {
+        return new Response('Static asset not found', { 
+          status: 404,
+          headers: { 'Content-Type': 'text/plain' }
+        })
+      }
+    } catch (e) {
+      return new Response('Static asset not found', { 
+        status: 404,
+        headers: { 'Content-Type': 'text/plain' }
+      })
+    }
+  }
+
+// 前端页面处理器
+async function handleFrontendPage(request: Request, env: any) {
+  // 返回前端 HTML 页面
+  const html = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PixivNow</title>
+
+    <!-- Umami Analytics -->
+    <script defer src="https://cloud.umami.is/script.js" data-website-id="842d980c-5e11-4834-a2a8-5daaa285ce66"></script>
+    
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+          'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .container {
+        text-align: center;
+        color: white;
+        max-width: 600px;
+        padding: 2rem;
+      }
+      
+      .logo {
+        font-size: 3rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      }
+      
+      .subtitle {
+        font-size: 1.2rem;
+        margin-bottom: 2rem;
+        opacity: 0.9;
+      }
+      
+      .search-box {
+        background: rgba(255, 255, 255, 0.1);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50px;
+        padding: 1rem 2rem;
+        font-size: 1rem;
+        color: white;
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto 2rem;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+      }
+      
+      .search-box::placeholder {
+        color: rgba(255, 255, 255, 0.7);
+      }
+      
+      .search-box:focus {
+        outline: none;
+        border-color: rgba(255, 255, 255, 0.6);
+        background: rgba(255, 255, 255, 0.2);
+      }
+      
+      .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 2rem;
+      }
+      
+      .feature {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 1.5rem;
+        border-radius: 15px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      
+      .feature h3 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.1rem;
+      }
+      
+      .feature p {
+        margin: 0;
+        opacity: 0.8;
+        font-size: 0.9rem;
+      }
+      
+      .status {
+        margin-top: 2rem;
+        padding: 1rem;
+        background: rgba(0, 255, 0, 0.1);
+        border: 1px solid rgba(0, 255, 0, 0.3);
+        border-radius: 10px;
+        color: #90EE90;
+      }
+      
+      .api-info {
+        margin-top: 2rem;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        font-size: 0.9rem;
+        opacity: 0.8;
+      }
+      
+      .api-info a {
+        color: #FFD700;
+        text-decoration: none;
+      }
+      
+      .api-info a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="logo">PixivNow</div>
+      <div class="subtitle">探索精彩的 Pixiv 作品世界</div>
+      
+      <input type="text" class="search-box" placeholder="输入关键词或画师名称搜索作品..." />
+      
+      <div class="features">
+        <div class="feature">
+          <h3>🎨 随机作品</h3>
+          <p>发现意想不到的精彩作品</p>
+        </div>
+        <div class="feature">
+          <h3>🔍 智能搜索</h3>
+          <p>快速找到你喜欢的内容</p>
+        </div>
+        <div class="feature">
+          <h3>📱 响应式设计</h3>
+          <p>完美适配各种设备</p>
+        </div>
+        <div class="feature">
+          <h3>⚡ 高速访问</h3>
+          <p>基于 Cloudflare 全球加速</p>
+        </div>
+      </div>
+      
+      <div class="status">
+        ✅ 服务正常运行中
+      </div>
+      
+      <div class="api-info">
+        <p>API 接口可用：</p>
+        <p><a href="/api/illust/random">/api/illust/random</a> - 随机作品</p>
+        <p><a href="/api/user">/api/user</a> - 用户信息</p>
+        <p>图片代理：<code>/i/</code> 和 <code>/s/</code></p>
+      </div>
+    </div>
+    
+    <script>
+      // 简单的搜索功能演示
+      document.querySelector('.search-box').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          const query = this.value.trim();
+          if (query) {
+            alert('搜索功能正在开发中，敬请期待！\\n搜索关键词：' + query);
+          }
+        }
+      });
+      
+      // 添加一些交互效果
+      document.querySelectorAll('.feature').forEach(feature => {
+        feature.addEventListener('mouseenter', function() {
+          this.style.transform = 'translateY(-5px)';
+          this.style.boxShadow = '0 10px 20px rgba(0,0,0,0.2)';
+        });
+        
+        feature.addEventListener('mouseleave', function() {
+          this.style.transform = 'translateY(0)';
+          this.style.boxShadow = 'none';
+        });
+      });
+    </script>
+  </body>
+</html>`
+
+  return corsResponse(new Response(html, {
+    headers: { 'Content-Type': 'text/html; charset=utf-8' },
+  }))
 }

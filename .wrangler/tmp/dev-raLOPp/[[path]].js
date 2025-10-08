@@ -1,7 +1,7 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-// .wrangler/tmp/bundle-P1vEyM/checked-fetch.js
+// .wrangler/tmp/bundle-xddOtL/checked-fetch.js
 var urls = /* @__PURE__ */ new Set();
 function checkURL(request, init) {
   const url = request instanceof URL ? request : new URL(
@@ -216,10 +216,40 @@ async function handleUserAPI(request, env, url) {
 }
 __name(handleUserAPI, "handleUserAPI");
 async function handleStaticAssets(request, env, path) {
-  return new Response("Static asset not found", {
-    status: 404,
-    headers: { "Content-Type": "text/plain" }
-  });
+  try {
+    const url = new URL(request.url);
+    const pathname = url.pathname;
+    let contentType = "text/plain";
+    if (pathname.endsWith(".js")) {
+      contentType = "application/javascript";
+    } else if (pathname.endsWith(".css")) {
+      contentType = "text/css";
+    } else if (pathname.endsWith(".ico")) {
+      contentType = "image/x-icon";
+    } else if (pathname.endsWith(".svg")) {
+      contentType = "image/svg+xml";
+    } else if (pathname.endsWith(".png")) {
+      contentType = "image/png";
+    } else if (pathname.endsWith(".jpg") || pathname.endsWith(".jpeg")) {
+      contentType = "image/jpeg";
+    }
+    try {
+      return new Response("Static asset not found", {
+        status: 404,
+        headers: { "Content-Type": "text/plain" }
+      });
+    } catch (e) {
+      return new Response("Static asset not found", {
+        status: 404,
+        headers: { "Content-Type": "text/plain" }
+      });
+    }
+  } catch (e) {
+    return new Response("Static asset not found", {
+      status: 404,
+      headers: { "Content-Type": "text/plain" }
+    });
+  }
 }
 __name(handleStaticAssets, "handleStaticAssets");
 async function handleFrontendPage(request, env) {
@@ -231,42 +261,185 @@ async function handleFrontendPage(request, env) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PixivNow</title>
 
-    <!-- Google tag (gtag.js) -->
-    <!-- <script
-      async
-      src="https://www.googletagmanager.com/gtag/js?id=%VITE_GOOGLE_ANALYTICS_ID%"
-    ><\/script>
-    <script>
-      window.dataLayer = window.dataLayer || []
-      function gtag() {
-        dataLayer.push(arguments)
-      }
-      gtag('js', new Date())
-      gtag('config', '%VITE_GOOGLE_ANALYTICS_ID%')
-    <\/script> -->
     <!-- Umami Analytics -->
     <script defer src="https://cloud.umami.is/script.js" data-website-id="842d980c-5e11-4834-a2a8-5daaa285ce66"><\/script>
-    <!-- Google Search Console -->
-    <meta
-      name="google-site-verification"
-      content="%VITE_GOOGLE_SEARCH_CONSOLE_VERIFICATION%"
-    />
-    <!-- Google AdSense -->
-    <script
-      async
-      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=%VITE_ADSENSE_PUB_ID%"
-      crossorigin="anonymous"
-    ><\/script>
-    <!-- jQuery -->
-    <!-- <script src="https://unpkg.com/jquery@3.7.1/dist/jquery.js"><\/script> -->
-    <script type="module" crossorigin src="/assets/index-DrUt9IKo.js"><\/script>
-    <link rel="stylesheet" crossorigin href="/assets/index-Dleou5i9.css">
+    
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+          'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .container {
+        text-align: center;
+        color: white;
+        max-width: 600px;
+        padding: 2rem;
+      }
+      
+      .logo {
+        font-size: 3rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      }
+      
+      .subtitle {
+        font-size: 1.2rem;
+        margin-bottom: 2rem;
+        opacity: 0.9;
+      }
+      
+      .search-box {
+        background: rgba(255, 255, 255, 0.1);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50px;
+        padding: 1rem 2rem;
+        font-size: 1rem;
+        color: white;
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto 2rem;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+      }
+      
+      .search-box::placeholder {
+        color: rgba(255, 255, 255, 0.7);
+      }
+      
+      .search-box:focus {
+        outline: none;
+        border-color: rgba(255, 255, 255, 0.6);
+        background: rgba(255, 255, 255, 0.2);
+      }
+      
+      .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 2rem;
+      }
+      
+      .feature {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 1.5rem;
+        border-radius: 15px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      
+      .feature h3 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.1rem;
+      }
+      
+      .feature p {
+        margin: 0;
+        opacity: 0.8;
+        font-size: 0.9rem;
+      }
+      
+      .status {
+        margin-top: 2rem;
+        padding: 1rem;
+        background: rgba(0, 255, 0, 0.1);
+        border: 1px solid rgba(0, 255, 0, 0.3);
+        border-radius: 10px;
+        color: #90EE90;
+      }
+      
+      .api-info {
+        margin-top: 2rem;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        font-size: 0.9rem;
+        opacity: 0.8;
+      }
+      
+      .api-info a {
+        color: #FFD700;
+        text-decoration: none;
+      }
+      
+      .api-info a:hover {
+        text-decoration: underline;
+      }
+    </style>
   </head>
   <body>
-    <noscript>
-      This site requires JavaScript enabled. Please check your browser settings.
-    </noscript>
-    <div id="app"></div>
+    <div class="container">
+      <div class="logo">PixivNow</div>
+      <div class="subtitle">\u63A2\u7D22\u7CBE\u5F69\u7684 Pixiv \u4F5C\u54C1\u4E16\u754C</div>
+      
+      <input type="text" class="search-box" placeholder="\u8F93\u5165\u5173\u952E\u8BCD\u6216\u753B\u5E08\u540D\u79F0\u641C\u7D22\u4F5C\u54C1..." />
+      
+      <div class="features">
+        <div class="feature">
+          <h3>\u{1F3A8} \u968F\u673A\u4F5C\u54C1</h3>
+          <p>\u53D1\u73B0\u610F\u60F3\u4E0D\u5230\u7684\u7CBE\u5F69\u4F5C\u54C1</p>
+        </div>
+        <div class="feature">
+          <h3>\u{1F50D} \u667A\u80FD\u641C\u7D22</h3>
+          <p>\u5FEB\u901F\u627E\u5230\u4F60\u559C\u6B22\u7684\u5185\u5BB9</p>
+        </div>
+        <div class="feature">
+          <h3>\u{1F4F1} \u54CD\u5E94\u5F0F\u8BBE\u8BA1</h3>
+          <p>\u5B8C\u7F8E\u9002\u914D\u5404\u79CD\u8BBE\u5907</p>
+        </div>
+        <div class="feature">
+          <h3>\u26A1 \u9AD8\u901F\u8BBF\u95EE</h3>
+          <p>\u57FA\u4E8E Cloudflare \u5168\u7403\u52A0\u901F</p>
+        </div>
+      </div>
+      
+      <div class="status">
+        \u2705 \u670D\u52A1\u6B63\u5E38\u8FD0\u884C\u4E2D
+      </div>
+      
+      <div class="api-info">
+        <p>API \u63A5\u53E3\u53EF\u7528\uFF1A</p>
+        <p><a href="/api/illust/random">/api/illust/random</a> - \u968F\u673A\u4F5C\u54C1</p>
+        <p><a href="/api/user">/api/user</a> - \u7528\u6237\u4FE1\u606F</p>
+        <p>\u56FE\u7247\u4EE3\u7406\uFF1A<code>/i/</code> \u548C <code>/s/</code></p>
+      </div>
+    </div>
+    
+    <script>
+      // \u7B80\u5355\u7684\u641C\u7D22\u529F\u80FD\u6F14\u793A
+      document.querySelector('.search-box').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          const query = this.value.trim();
+          if (query) {
+            alert('\u641C\u7D22\u529F\u80FD\u6B63\u5728\u5F00\u53D1\u4E2D\uFF0C\u656C\u8BF7\u671F\u5F85\uFF01\\n\u641C\u7D22\u5173\u952E\u8BCD\uFF1A' + query);
+          }
+        }
+      });
+      
+      // \u6DFB\u52A0\u4E00\u4E9B\u4EA4\u4E92\u6548\u679C
+      document.querySelectorAll('.feature').forEach(feature => {
+        feature.addEventListener('mouseenter', function() {
+          this.style.transform = 'translateY(-5px)';
+          this.style.boxShadow = '0 10px 20px rgba(0,0,0,0.2)';
+        });
+        
+        feature.addEventListener('mouseleave', function() {
+          this.style.transform = 'translateY(0)';
+          this.style.boxShadow = 'none';
+        });
+      });
+    <\/script>
   </body>
 </html>`;
   return corsResponse(new Response(html, {
@@ -316,7 +489,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// .wrangler/tmp/bundle-P1vEyM/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-xddOtL/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -348,7 +521,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// .wrangler/tmp/bundle-P1vEyM/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-xddOtL/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;

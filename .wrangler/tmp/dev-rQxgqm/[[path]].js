@@ -1,7 +1,7 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-// .wrangler/tmp/bundle-P1vEyM/checked-fetch.js
+// .wrangler/tmp/bundle-0fkApo/checked-fetch.js
 var urls = /* @__PURE__ */ new Set();
 function checkURL(request, init) {
   const url = request instanceof URL ? request : new URL(
@@ -216,10 +216,21 @@ async function handleUserAPI(request, env, url) {
 }
 __name(handleUserAPI, "handleUserAPI");
 async function handleStaticAssets(request, env, path) {
-  return new Response("Static asset not found", {
-    status: 404,
-    headers: { "Content-Type": "text/plain" }
-  });
+  try {
+    return await getAssetFromKV({
+      request,
+      waitUntil: /* @__PURE__ */ __name(() => {
+      }, "waitUntil")
+    }, {
+      ASSET_NAMESPACE: env.__STATIC_CONTENT,
+      ASSET_MANIFEST: env.__STATIC_CONTENT_MANIFEST
+    });
+  } catch (e) {
+    return new Response("Static asset not found", {
+      status: 404,
+      headers: { "Content-Type": "text/plain" }
+    });
+  }
 }
 __name(handleStaticAssets, "handleStaticAssets");
 async function handleFrontendPage(request, env) {
@@ -316,7 +327,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// .wrangler/tmp/bundle-P1vEyM/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-0fkApo/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -348,7 +359,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// .wrangler/tmp/bundle-P1vEyM/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-0fkApo/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;
