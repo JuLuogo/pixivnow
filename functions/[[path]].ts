@@ -281,23 +281,45 @@ async function handleGenericProxy(request: Request, env: any) {
 
   // 如果配置了代理IP，则通过代理发送请求
   if (env.PROXY_IP) {
-    const proxyUrl = `https://${env.PROXY_IP}/${url.toString()}`
-    const newReq = new Request(proxyUrl, {
-      method: request.method,
-      headers,
-      body: request.body,
+    // 使用 allorigins.win 代理服务
+    const proxyUrl = `https://${env.PROXY_IP}?get=${encodeURIComponent(url.toString())}`
+    const proxyReq = new Request(proxyUrl, {
+      method: 'GET', // allorigins.win 只支持 GET 请求
+      headers: {
+        'User-Agent': env.USER_AGENT || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 Edg/122.0.0.0'
+      }
     })
-    const response = await fetch(newReq)
-    return corsResponse(response)
-  } else {
-    const newReq = new Request(url.toString(), {
-      method: request.method,
-      headers,
-      body: request.body,
-    })
-    const response = await fetch(newReq)
-    return corsResponse(response)
+    
+    try {
+      const proxyResponse = await fetch(proxyReq)
+      if (!proxyResponse.ok) {
+        throw new Error(`Proxy returned ${proxyResponse.status}`)
+      }
+      
+      const proxyData = await proxyResponse.json()
+      if (proxyData.contents) {
+        // 解析代理返回的内容
+        const pixivData = JSON.parse(proxyData.contents)
+        return corsResponse(new Response(JSON.stringify(pixivData), {
+          headers: { 'Content-Type': 'application/json' }
+        }))
+      } else {
+        throw new Error('No contents in proxy response')
+      }
+    } catch (error) {
+      console.error('Proxy request failed:', error)
+      // 如果代理失败，回退到直接请求
+    }
   }
+  
+  // 直接请求或代理失败时的回退
+  const newReq = new Request(url.toString(), {
+    method: request.method,
+    headers,
+    body: request.body,
+  })
+  const response = await fetch(newReq)
+  return corsResponse(response)
 }
 
 // 图片代理处理器

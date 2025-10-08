@@ -12,7 +12,7 @@ bucket = "./dist"
 # User-Agent 黑名单（JSON 数组格式）
 
 # 代理IP配置（可选，用于绕过Pixiv WAF）
-PROXY_IP = "ProxyIP.US.CMLiussss.net"
+PROXY_IP = "api.allorigins.win/get?url="
 # 自定义图片代理 URL（可选，默认使用 Pixiv 原始 URL）
 # 示例配置：
 # VITE_PXIMG_BASEURL_I = "https://i.pixiv.re/"
