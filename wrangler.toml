@@ -2,9 +2,9 @@ name = "pixivnow-worker"
 main = "functions/[[path]].ts"
 compatibility_date = "2023-10-30"
 
-# Assets 配置 - 用于部署静态资源
-[assets]
-directory = "./dist"
+# Workers Sites 配置 - 用于部署静态资源
+[site]
+bucket = "./dist"
 
 # 环境变量配置
 # 这些变量都有默认值，可以根据需要自定义

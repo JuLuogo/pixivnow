@@ -59,28 +59,25 @@ export default {
       }
 
       // 静态资源和前端页面处理
-      // 使用新的 Assets API
-      if (env.ASSETS) {
-        try {
-          return await env.ASSETS.fetch(request)
-        } catch (e) {
-          console.log('Asset not found, falling back to index.html')
-          // 如果静态资源不存在，返回 index.html（SPA 路由处理）
-          try {
-            const indexRequest = new Request(new URL('/index.html', request.url), request)
-            return await env.ASSETS.fetch(indexRequest)
-          } catch (indexError) {
-            console.log('Index.html not found, using fallback')
-            // 如果 index.html 也不存在，返回内置的前端页面
-            return await handleFrontendPage(request, env)
+      // 使用 getAssetFromKV (Workers Sites)
+      try {
+        return await getAssetFromKV(
+          {
+            request,
+            waitUntil: ctx.waitUntil.bind(ctx),
+          },
+          {
+            ASSET_NAMESPACE: env.__STATIC_CONTENT,
+            ASSET_MANIFEST: env.__STATIC_CONTENT_MANIFEST,
           }
-        }
-      } else {
-        // 如果没有 ASSETS，使用 getAssetFromKV
+        )
+      } catch (e) {
+        // 如果静态资源不存在，返回 index.html（SPA 路由处理）
         try {
+          const indexRequest = new Request(new URL('/index.html', request.url), request)
           return await getAssetFromKV(
             {
-              request,
+              request: indexRequest,
               waitUntil: ctx.waitUntil.bind(ctx),
             },
             {
@@ -88,24 +85,9 @@ export default {
               ASSET_MANIFEST: env.__STATIC_CONTENT_MANIFEST,
             }
           )
-        } catch (e) {
-          // 如果静态资源不存在，返回 index.html（SPA 路由处理）
-          try {
-            const indexRequest = new Request(new URL('/index.html', request.url), request)
-            return await getAssetFromKV(
-              {
-                request: indexRequest,
-                waitUntil: ctx.waitUntil.bind(ctx),
-              },
-              {
-                ASSET_NAMESPACE: env.__STATIC_CONTENT,
-                ASSET_MANIFEST: env.__STATIC_CONTENT_MANIFEST,
-              }
-            )
-          } catch (indexError) {
-            // 如果 index.html 也不存在，返回内置的前端页面
-            return await handleFrontendPage(request, env)
-          }
+        } catch (indexError) {
+          // 如果 index.html 也不存在，返回内置的前端页面
+          return await handleFrontendPage(request, env)
         }
       }
       
