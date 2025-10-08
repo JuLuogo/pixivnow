@@ -261,20 +261,43 @@ async function handleGenericProxy(request: Request, env: any) {
   const url = new URL(request.url)
   url.hostname = 'www.pixiv.net'
 
-  const headers = new Headers(request.headers)
+  const headers = new Headers()
+  
+  // 复制原始请求中的重要头部（如 Cookie）
+  const importantHeaders = ['cookie', 'authorization', 'x-csrf-token']
+  importantHeaders.forEach(headerName => {
+    const value = request.headers.get(headerName)
+    if (value) {
+      headers.set(headerName, value)
+    }
+  })
+  
+  // 设置必要的请求头来模拟真实浏览器访问
+  headers.set('host', 'www.pixiv.net')
   headers.set('origin', 'https://www.pixiv.net')
   headers.set('referer', 'https://www.pixiv.net/')
-  // 使用默认的 User-Agent，或者环境变量中的自定义 User-Agent
   headers.set('user-agent', env.USER_AGENT || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 Edg/122.0.0.0')
+  headers.set('accept-language', 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6')
 
-  const newReq = new Request(url.toString(), {
-    method: request.method,
-    headers,
-    body: request.body,
-  })
-
-  const response = await fetch(newReq)
-  return corsResponse(response)
+  // 如果配置了代理IP，则通过代理发送请求
+  if (env.PROXY_IP) {
+    const proxyUrl = `https://${env.PROXY_IP}/${url.toString()}`
+    const newReq = new Request(proxyUrl, {
+      method: request.method,
+      headers,
+      body: request.body,
+    })
+    const response = await fetch(newReq)
+    return corsResponse(response)
+  } else {
+    const newReq = new Request(url.toString(), {
+      method: request.method,
+      headers,
+      body: request.body,
+    })
+    const response = await fetch(newReq)
+    return corsResponse(response)
+  }
 }
 
 // 图片代理处理器

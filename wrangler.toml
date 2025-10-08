@@ -12,7 +12,9 @@ bucket = "./dist"
 # User-Agent 黑名单（JSON 数组格式）
 UA_BLACKLIST = "[]"
 # 自定义 User-Agent（可选，有默认值）
-# USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 Edg/122.0.0.0"
+# 代理IP配置（可选，用于绕过Pixiv WAF）
+PROXY_IP = "ProxyIP.US.CMLiussss.net"
 # 自定义图片代理 URL（可选，默认使用 Pixiv 原始 URL）
 # 示例配置：
 # VITE_PXIMG_BASEURL_I = "https://i.pixiv.re/"
