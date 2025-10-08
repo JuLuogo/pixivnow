@@ -1,0 +1,64 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "labels": ["dependencies"],
+  "baseBranches": ["dev"],
+  "packageRules": [
+    {
+      "groupName": "framework",
+      "matchPackageNames": [
+        "vue",
+        "vue-i18n",
+        "vue-router",
+        "axios",
+        "pinia",
+        "@vercel/node"
+      ]
+    },
+    {
+      "groupName": "ui",
+      "matchPackageNames": [
+        "naive-ui",
+        "vue-flex-waterfall",
+        "vue-gtag",
+        "nprogress",
+        "@iconify{/,}**"
+      ]
+    },
+    {
+      "groupName": "build",
+      "matchPackageNames": [
+        "typescript",
+        "vite",
+        "pug",
+        "sass",
+        "tslib",
+        "vercel",
+        "@vue/language-plugin-pug",
+        "@vitejs{/,}**",
+        "unplugin{/,}**",
+        "@vueuse{/,}**"
+      ]
+    },
+    {
+      "groupName": "types",
+      "matchPackageNames": ["@types{/,}**"]
+    },
+    {
+      "groupName": "utils",
+      "matchPackageNames": [
+        "picocolors",
+        "js-cookie",
+        "cookie",
+        "cheerio",
+        "conventional-changelog-cli",
+        "lodash{/,}**",
+        "date{/,}**"
+      ]
+    },
+    {
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "automerge": true
+    }
+  ]
+}
