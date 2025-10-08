@@ -52,14 +52,14 @@ import {
   type ZipEntry,
 } from '@/utils/ZipDownloader'
 import { IconDownload } from '@tabler/icons-vue'
-import { type TableColumn } from 'naive-ui/es/data-table/src/interface'
+import { type DataTableColumns } from 'naive-ui'
 
 const downloader = new ZipDownloader('')
 
 const data = ref<ZipOverview>()
 const entries = computed(() => data.value?.entries)
 
-const columns = ref<TableColumn<ZipEntry>[]>([
+const columns = ref<DataTableColumns<ZipEntry>>([
   {
     title: '',
     key: 'actions',
